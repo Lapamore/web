@@ -1,7 +1,9 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Observable, Subject } from 'rxjs';
+import { takeUntil, switchMap, tap } from 'rxjs/operators';
 
 import { Hero } from '../hero';
 import { HeroService } from '../hero.service';
@@ -12,11 +14,13 @@ import { HeroService } from '../hero.service';
   styleUrls: [ './hero-detail.component.css' ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class HeroDetailComponent implements OnInit {
+export class HeroDetailComponent implements OnInit, OnDestroy {
+  hero$!: Observable<Hero>;
   hero: Hero | undefined;
   heroForm!: FormGroup;
   powers: string[] = ['Speed', 'Strength', 'Intelligence', 'Healing', 'Flight', 'Energy', 'Magnetism', 'Telekinesis', 'Invisibility', 'Fire', 'Ice'];
   origins: string[] = ['Earth', 'Mars', 'Jupiter', 'Venus', 'Mercury', 'Neptune', 'Unknown'];
+  private destroy$ = new Subject<void>();
 
   constructor(
     private route: ActivatedRoute,
@@ -26,8 +30,13 @@ export class HeroDetailComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.getHero();
     this.createForm();
+    this.getHero();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   createForm(): void {
@@ -45,6 +54,7 @@ export class HeroDetailComponent implements OnInit {
   getHero(): void {
     const id = parseInt(this.route.snapshot.paramMap.get('id')!, 10);
     this.heroService.getHero(id)
+      .pipe(takeUntil(this.destroy$))
       .subscribe(hero => {
         this.hero = hero;
         this.heroForm.patchValue({
@@ -75,6 +85,7 @@ export class HeroDetailComponent implements OnInit {
       this.hero.description = formModel.description;
       
       this.heroService.updateHero(this.hero)
+        .pipe(takeUntil(this.destroy$))
         .subscribe(() => this.goBack());
     }
   }

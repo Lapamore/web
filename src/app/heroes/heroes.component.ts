@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Observable, Subject, BehaviorSubject } from 'rxjs';
+import { takeUntil, switchMap } from 'rxjs/operators';
 
 import { Hero } from '../hero';
 import { HeroService } from '../hero.service';
@@ -12,22 +12,31 @@ import { HeroService } from '../hero.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HeroesComponent implements OnInit, OnDestroy {
-  heroes$!: Observable<Hero[]>;
+  private heroesSubject = new BehaviorSubject<null>(null);
+  heroes$: Observable<Hero[]>;
   private destroy$ = new Subject<void>();
   
-  constructor(private heroService: HeroService) { }
+  constructor(private heroService: HeroService) {
+    // Создаем Observable, который будет обновляться при каждом вызове heroesSubject.next()
+    this.heroes$ = this.heroesSubject.pipe(
+      switchMap(() => this.heroService.getHeroes())
+    );
+  }
 
   ngOnInit(): void {
-    this.getHeroes();
+    // Инициируем первую загрузку
+    this.loadHeroes();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.heroesSubject.complete();
   }
 
-  getHeroes(): void {
-    this.heroes$ = this.heroService.getHeroes();
+  // Вызываем этот метод для обновления списка героев
+  loadHeroes(): void {
+    this.heroesSubject.next(null);
   }
 
   add(name: string): void {
@@ -48,7 +57,7 @@ export class HeroesComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(_ => {
         // Обновляем список героев после добавления
-        this.getHeroes();
+        this.loadHeroes();
       });
   }
 
@@ -57,7 +66,7 @@ export class HeroesComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         // Обновляем список героев после удаления
-        this.getHeroes();
+        this.loadHeroes();
       });
   }
 }

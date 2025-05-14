@@ -1,0 +1,74 @@
+<div *ngIf="hero">
+  <h2>{{hero.name | uppercase}} Details</h2>
+  <!-- LAB 2 начало-->
+  <form [formGroup]="heroForm" (ngSubmit)="save()">
+    <div class="form-group">
+      <label for="hero-id">ID:</label>
+      <input id="hero-id" formControlName="id" readonly />
+    </div>
+
+    <div class="form-group">
+      <label for="hero-name">Hero name:</label>
+      <input id="hero-name" formControlName="name" placeholder="Hero name"/>
+      <div *ngIf="heroForm.get('name')?.invalid && (heroForm.get('name')?.dirty || heroForm.get('name')?.touched)" class="error">
+        <div *ngIf="heroForm.get('name')?.errors?.['required']">Name is required.</div>
+        <div *ngIf="heroForm.get('name')?.errors?.['minlength']">Name must be at least 3 characters long.</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="hero-power">Power:</label>
+      <select id="hero-power" formControlName="power">
+        <option value="">Choose a power</option>
+        <option *ngFor="let power of powers" [value]="power">{{power}}</option>
+      </select>
+      <div *ngIf="heroForm.get('power')?.invalid && (heroForm.get('power')?.dirty || heroForm.get('power')?.touched)" class="error">
+        <div *ngIf="heroForm.get('power')?.errors?.['required']">Power is required.</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="hero-level">Power level:</label>
+      <input id="hero-level" type="number" formControlName="level" min="1" max="10"/>
+      <div *ngIf="heroForm.get('level')?.invalid && (heroForm.get('level')?.dirty || heroForm.get('level')?.touched)" class="error">
+        <div *ngIf="heroForm.get('level')?.errors?.['required']">Level is required.</div>
+        <div *ngIf="heroForm.get('level')?.errors?.['min']">Level must be at least 1.</div>
+        <div *ngIf="heroForm.get('level')?.errors?.['max']">Level cannot exceed 10.</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="hero-origin">Origin:</label>
+      <select id="hero-origin" formControlName="origin">
+        <option value="">Choose an origin</option>
+        <option *ngFor="let origin of origins" [value]="origin">{{origin}}</option>
+      </select>
+      <div *ngIf="heroForm.get('origin')?.invalid && (heroForm.get('origin')?.dirty || heroForm.get('origin')?.touched)" class="error">
+        <div *ngIf="heroForm.get('origin')?.errors?.['required']">Origin is required.</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="hero-active">Active status:</label>
+      <div class="checkbox">
+        <input id="hero-active" type="checkbox" formControlName="isActive"/>
+        <span>Hero is currently active</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="hero-description">Description:</label>
+      <textarea id="hero-description" formControlName="description" rows="4"></textarea>
+      <div *ngIf="heroForm.get('description')?.invalid && (heroForm.get('description')?.dirty || heroForm.get('description')?.touched)" class="error">
+        <div *ngIf="heroForm.get('description')?.errors?.['required']">Description is required.</div>
+        <div *ngIf="heroForm.get('description')?.errors?.['maxlength']">Description cannot exceed 200 characters.</div>
+      </div>
+    </div>
+
+    <div class="button-group">
+      <button type="button" (click)="goBack()">Go back</button>
+      <button type="submit" [disabled]="heroForm.invalid">Save</button>
+    </div>
+  </form>
+</div>
+<!-- LAB 2 конец-->

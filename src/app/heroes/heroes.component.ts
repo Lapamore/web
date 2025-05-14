@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
-import { Observable, Subject, Subscription } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { Hero } from '../hero';
@@ -33,9 +33,20 @@ export class HeroesComponent implements OnInit, OnDestroy {
   add(name: string): void {
     name = name.trim();
     if (!name) { return; }
-    this.heroService.addHero({ name } as Hero)
+    
+    // Создаем объект героя с обязательными полями
+    const newHero: Partial<Hero> = { 
+      name, 
+      power: '', 
+      level: 1,
+      origin: '',
+      isActive: true,
+      description: ''
+    };
+    
+    this.heroService.addHero(newHero as Hero)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(hero => {
+      .subscribe(_ => {
         // Обновляем список героев после добавления
         this.getHeroes();
       });

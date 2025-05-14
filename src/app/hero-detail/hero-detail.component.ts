@@ -2,8 +2,8 @@ import { Component, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/
 import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Observable, Subject } from 'rxjs';
-import { takeUntil, switchMap, tap } from 'rxjs/operators';
+import { Observable, Subject, of } from 'rxjs';
+import { takeUntil, tap, switchMap, catchError } from 'rxjs/operators';
 
 import { Hero } from '../hero';
 import { HeroService } from '../hero.service';
@@ -16,7 +16,6 @@ import { HeroService } from '../hero.service';
 })
 export class HeroDetailComponent implements OnInit, OnDestroy {
   hero$!: Observable<Hero>;
-  hero: Hero | undefined;
   heroForm!: FormGroup;
   powers: string[] = ['Speed', 'Strength', 'Intelligence', 'Healing', 'Flight', 'Energy', 'Magnetism', 'Telekinesis', 'Invisibility', 'Fire', 'Ice'];
   origins: string[] = ['Earth', 'Mars', 'Jupiter', 'Venus', 'Mercury', 'Neptune', 'Unknown'];
@@ -53,10 +52,8 @@ export class HeroDetailComponent implements OnInit, OnDestroy {
 
   getHero(): void {
     const id = parseInt(this.route.snapshot.paramMap.get('id')!, 10);
-    this.heroService.getHero(id)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(hero => {
-        this.hero = hero;
+    this.hero$ = this.heroService.getHero(id).pipe(
+      tap(hero => {
         this.heroForm.patchValue({
           id: hero.id,
           name: hero.name,
@@ -66,7 +63,12 @@ export class HeroDetailComponent implements OnInit, OnDestroy {
           isActive: hero.isActive,
           description: hero.description
         });
-      });
+      }),
+      catchError(error => {
+        console.error('Error loading hero:', error);
+        return of({} as Hero);
+      })
+    );
   }
 
   goBack(): void {
@@ -74,17 +76,21 @@ export class HeroDetailComponent implements OnInit, OnDestroy {
   }
 
   save(): void {
-    if (this.heroForm.valid && this.hero) {
+    if (this.heroForm.valid) {
       const formModel = this.heroForm.value;
+      const heroId = parseInt(this.route.snapshot.paramMap.get('id')!, 10);
       
-      this.hero.name = formModel.name;
-      this.hero.power = formModel.power;
-      this.hero.level = formModel.level;
-      this.hero.origin = formModel.origin;
-      this.hero.isActive = formModel.isActive;
-      this.hero.description = formModel.description;
+      const updatedHero: Hero = {
+        id: heroId,
+        name: formModel.name,
+        power: formModel.power,
+        level: formModel.level,
+        origin: formModel.origin,
+        isActive: formModel.isActive,
+        description: formModel.description
+      };
       
-      this.heroService.updateHero(this.hero)
+      this.heroService.updateHero(updatedHero)
         .pipe(takeUntil(this.destroy$))
         .subscribe(() => this.goBack());
     }

@@ -1,7 +1,44 @@
 /* AppComponent's private CSS styles */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 1rem;
+}
+
 h1 {
   margin-bottom: 0;
+  margin-top: 0;
 }
+
+.auth-panel {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.auth-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.welcome-text {
+  font-weight: 500;
+  color: #264D73;
+}
+
+nav {
+  margin-bottom: 1rem;
+}
+
 nav a {
   padding: 1rem;
   text-decoration: none;
@@ -11,10 +48,12 @@ nav a {
   color: #3d3d3d;
   border-radius: 4px;
 }
+
 nav a:hover {
   color: white;
   background-color: #42545C;
 }
+
 nav a.active {
   background-color: black;
 }

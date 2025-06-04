@@ -1,4 +1,28 @@
-<h1>{{title}}</h1>
+<div class="app-header">
+  <h1>{{title}}</h1>
+  
+  <!-- Панель авторизации -->
+  <div class="auth-panel">
+    <div *ngIf="!isLoggedIn; else loggedInTemplate" class="auth-buttons">
+      <button mat-raised-button color="primary" (click)="openLoginDialog()">
+        Войти
+      </button>
+      <button mat-raised-button color="accent" (click)="openRegisterDialog()">
+        Регистрация
+      </button>
+    </div>
+    
+    <ng-template #loggedInTemplate>
+      <div class="user-info">
+        <span class="welcome-text">Добро пожаловать, {{ currentUser?.username }}!</span>
+        <button mat-raised-button color="warn" (click)="logout()">
+          Выйти
+        </button>
+      </div>
+    </ng-template>
+  </div>
+</div>
+
 <nav>
   <a routerLink="/dashboard">Dashboard</a>
   <a routerLink="/heroes">Heroes</a>

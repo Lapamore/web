@@ -1,39 +1,35 @@
 def test_index_creation_ch():
     """
     Тестирует создание векторного индекса в ClickHouse.
-    Используем современный синтаксис TYPE hnsw(...) для версии 24.x
+    Используем тип `vector_similarity` с правильным синтаксисом для этой версии сервера.
     """
     ch_client.command('ALTER TABLE vectors_ch DROP INDEX IF EXISTS idx_vector_l2')
     
     t0 = time.time()
     
-    # ### ИЗМЕНЕНИЕ: Используем прямой синтаксис TYPE hnsw(...) ###
+    # ### ФИНАЛЬНЫЙ ИСПРАВЛЕННЫЙ СИНТАКСИС ###
     ch_client.command(
         f'''
         ALTER TABLE vectors_ch
-        ADD INDEX idx_vector_l2 embedding TYPE hnsw(
-            'type=L2Distance',          -- Тип метрики расстояния
-            'm={HNSW_M}',               -- Максимальное число соседей на слое
-            'ef_construction=200'       -- Параметр для построения индекса
-        ) GRANULARITY 1
+        ADD INDEX idx_vector_l2 embedding TYPE vector_similarity(metric_type='L2Distance') GRANULARITY 1
         ''',
-        # Настройка для разрешения экспериментальной фичи все еще нужна
+        # Эта настройка все еще нужна, так как фича экспериментальная
         settings={'allow_experimental_vector_similarity_index': 1}
     )
     
-    # Индекс строится в фоне, но для теста нужно дождаться его готовности
+    # Ожидание построения индекса
     while True:
         status = ch_client.query('''
             SELECT status FROM system.vector_indices
             WHERE table = 'vectors_ch' AND name = 'idx_vector_l2'
         ''').result_rows
-        if not status: # Индекс еще не появился в системной таблице
+        if not status:
             time.sleep(1)
             continue
         if status[0][0] == 'Built':
+            print("ClickHouse index has been built successfully.")
             break
         elif status[0][0] == 'Error':
-             # Добавим вывод ошибки, если индекс не построился
             error_msg = ch_client.query(
                 "SELECT error FROM system.vector_indices WHERE table = 'vectors_ch' AND name = 'idx_vector_l2'"
             ).result_rows[0][0]

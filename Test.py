@@ -1,19 +1,19 @@
 def test_index_creation_ch():
     """
     Тестирует создание векторного индекса в ClickHouse.
-    Используем тип `vector_similarity` с правильным синтаксисом для этой версии сервера.
+    Финальная версия синтаксиса для этого сервера.
     """
     ch_client.command('ALTER TABLE vectors_ch DROP INDEX IF EXISTS idx_vector_l2')
     
     t0 = time.time()
     
-    # ### ФИНАЛЬНЫЙ ИСПРАВЛЕННЫЙ СИНТАКСИС ###
+    # ### ЭТО ПРАВИЛЬНЫЙ СИНТАКСИС ###
     ch_client.command(
         f'''
         ALTER TABLE vectors_ch
-        ADD INDEX idx_vector_l2 embedding TYPE vector_similarity(metric_type='L2Distance') GRANULARITY 1
+        ADD INDEX idx_vector_l2 embedding TYPE vector_similarity('L2Distance') GRANULARITY 1
         ''',
-        # Эта настройка все еще нужна, так как фича экспериментальная
+        # Эта настройка все еще нужна
         settings={'allow_experimental_vector_similarity_index': 1}
     )
     
